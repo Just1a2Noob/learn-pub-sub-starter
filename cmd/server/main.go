@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
@@ -33,46 +32,42 @@ func main() {
 	gamelogic.PrintServerHelp()
 
 	for {
-		user_input := gamelogic.GetInput()
-
-		fmt.Println(strings.ToLower(user_input[0]))
-
-		if user_input[0] == "pause" {
-
-			// Below publishes an exchange message
+		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
+		switch words[0] {
+		case "pause":
+			fmt.Println("Publishing paused game state")
 			err = pubsub.PublishJSON(
 				connChan,
 				routing.ExchangePerilDirect,
 				routing.PauseKey,
-				routing.PlayingState{IsPaused: true},
+				routing.PlayingState{
+					IsPaused: true,
+				},
 			)
-
 			if err != nil {
-				log.Fatalf("Error publishing message: %s", err)
-				return
+				log.Printf("could not publish time: %v", err)
 			}
-		}
-
-		if user_input[0] == "resume" {
-			// Below publishes an exchange message
+		case "resume":
+			fmt.Println("Publishing resumes game state")
 			err = pubsub.PublishJSON(
 				connChan,
 				routing.ExchangePerilDirect,
 				routing.PauseKey,
-				routing.PlayingState{IsPaused: false},
+				routing.PlayingState{
+					IsPaused: false,
+				},
 			)
-
 			if err != nil {
-				log.Fatalf("Error publishing message: %s", err)
-				return
+				log.Printf("could not publish time: %v", err)
 			}
-		}
-
-		if user_input[0] == "quit" {
-			fmt.Printf("\nClossing connection...")
-			break
-		} else {
-			fmt.Printf("\nCommand not understood\n")
+		case "quit":
+			log.Println("goodbye")
+			return
+		default:
+			fmt.Println("unknown command")
 		}
 	}
 }
