@@ -29,6 +29,14 @@ func main() {
 
 	fmt.Printf("Connection to server was successful")
 
+	_, _, err = pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, "game_logs", "game_logs*", pubsub.SimpleQueueType{
+		Durable:   true,
+		Transient: false,
+	})
+	if err != nil {
+		log.Fatalf("Error binding connection to queue: %s", err)
+	}
+
 	gamelogic.PrintServerHelp()
 
 	for {
