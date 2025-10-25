@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "RabbitMQ_pubsub_API-tests",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

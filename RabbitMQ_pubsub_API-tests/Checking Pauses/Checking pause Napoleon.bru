@@ -1,0 +1,21 @@
+meta {
+  name: Checking pause Napoleon
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:15672/api/queues/%2F/pause.napoleon
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: guest
+  password: guest
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
