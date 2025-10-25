@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
+	"strings"
 
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -30,25 +30,49 @@ func main() {
 
 	fmt.Printf("Connection to server was successful")
 
-	// Below publishes an exchange message
-	err = pubsub.PublishJSON(
-		connChan,
-		routing.ExchangePerilDirect,
-		routing.PauseKey,
-		routing.PlayingState{IsPaused: true},
-	)
+	gamelogic.PrintServerHelp()
 
-	if err != nil {
-		log.Fatalf("Error publishing message: %s", err)
-		return
+	for {
+		user_input := gamelogic.GetInput()
+
+		fmt.Println(strings.ToLower(user_input[0]))
+
+		if user_input[0] == "pause" {
+
+			// Below publishes an exchange message
+			err = pubsub.PublishJSON(
+				connChan,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: true},
+			)
+
+			if err != nil {
+				log.Fatalf("Error publishing message: %s", err)
+				return
+			}
+		}
+
+		if user_input[0] == "resume" {
+			// Below publishes an exchange message
+			err = pubsub.PublishJSON(
+				connChan,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: false},
+			)
+
+			if err != nil {
+				log.Fatalf("Error publishing message: %s", err)
+				return
+			}
+		}
+
+		if user_input[0] == "quit" {
+			fmt.Printf("\nClossing connection...")
+			break
+		} else {
+			fmt.Printf("\nCommand not understood\n")
+		}
 	}
-
-	// Using signal channels, we can listen for signals i.e. Ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-
-	// Were waiting for a value to receive then active the code below it
-	<-signalChan
-
-	fmt.Printf("\nClossing connection...")
 }
