@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 	"strings"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
@@ -42,11 +40,36 @@ func main() {
 		log.Fatalf("Error declaring and binding connection: %s", err)
 	}
 
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
+	gamestate := gamelogic.NewGameState(username)
 
-	// Were waiting for a value to receive then active the code below it
-	<-signalChan
+	for {
+		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
 
-	fmt.Printf("\nClossing connection...")
+		switch words[0] {
+		case "spawn":
+			err := gamestate.CommandSpawn(words)
+			if err != nil {
+				log.Printf("Error spawning units: %s", err)
+			}
+		case "move":
+			_, err := gamestate.CommandMove(words)
+			if err != nil {
+				log.Printf("Error moving unit: %s", err)
+			}
+		case "status":
+			gamestate.CommandStatus()
+		case "help":
+			gamelogic.PrintClientHelp()
+		case "spam":
+			fmt.Println("Spamming is not allowed yet!")
+		case "quit":
+			gamelogic.PrintQuit()
+			return
+		default:
+			fmt.Println("Unknown command")
+		}
+	}
 }
