@@ -41,6 +41,16 @@ func main() {
 	}
 
 	gamestate := gamelogic.NewGameState(username)
+	queue_name := fmt.Sprintf("pause.%s", username)
+
+	err = pubsub.SubscribeJSON(
+		conn,
+		string(routing.ExchangePerilDirect),
+		queue_name,
+		string(routing.PauseKey),
+		pubsub.SimpleQueueType{Transient: true},
+		handlerPause(gamestate),
+	)
 
 	for {
 		words := gamelogic.GetInput()
