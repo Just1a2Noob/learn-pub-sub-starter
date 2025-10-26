@@ -28,18 +28,18 @@ func main() {
 		log.Fatalf("Error in getting username: %s", err)
 	}
 
-	// amqpChan, queue,
-	_, _, err = pubsub.DeclareAndBind(
+	// Declares a bind to "pause" queue
+	connChan, _, err := pubsub.DeclareAndBind(
 		conn,
 		routing.ExchangePerilDirect,
 		strings.Join([]string{routing.PauseKey, username}, "."),
 		routing.PauseKey,
 		pubsub.SimpleQueueType{Transient: true})
-
 	if err != nil {
 		log.Fatalf("Error declaring and binding connection: %s", err)
 	}
 
+	// Creates a new game_state and pass the gamestate to the handler
 	gamestate := gamelogic.NewGameState(username)
 	queue_name := fmt.Sprintf("pause.%s", username)
 
@@ -51,6 +51,21 @@ func main() {
 		pubsub.SimpleQueueType{Transient: true},
 		handlerPause(gamestate),
 	)
+	if err != nil {
+		log.Fatalf("Can't connect to gamestate consumer: %s", err)
+	}
+
+	err = pubsub.SubscribeJSON(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.ArmyMovesPrefix+"."+gamestate.GetUsername(),
+		routing.ArmyMovesPrefix+".*",
+		pubsub.SimpleQueueType{Transient: true},
+		handlerMove(gamestate),
+	)
+	if err != nil {
+		log.Fatalf("Can't connect to army_move consumer: %s", err)
+	}
 
 	for {
 		words := gamelogic.GetInput()
@@ -64,11 +79,20 @@ func main() {
 			if err != nil {
 				log.Printf("Error spawning units: %s", err)
 			}
+
 		case "move":
-			_, err := gamestate.CommandMove(words)
+			movement, err := gamestate.CommandMove(words)
 			if err != nil {
 				log.Printf("Error moving unit: %s", err)
+				break
 			}
+
+			err = pubsub.PublishJSON(
+				connChan,
+				routing.ExchangePerilTopic,
+				routing.ArmyMovesPrefix+"."+movement.Player.Username,
+				movement,
+			)
 		case "status":
 			gamestate.CommandStatus()
 		case "help":
