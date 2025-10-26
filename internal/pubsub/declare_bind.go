@@ -6,11 +6,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type SimpleQueueType struct {
-	Durable   bool
-	Transient bool
-}
-
 func DeclareAndBind(
 	conn *amqp.Connection,
 	exchange,

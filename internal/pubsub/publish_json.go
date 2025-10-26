@@ -12,6 +12,7 @@ func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 	data, err := json.Marshal(val)
 	if err != nil {
 		log.Fatalf("Error marshalling value to json: %s", err)
+		return err
 	}
 
 	publish_json := amqp.Publishing{
@@ -21,7 +22,10 @@ func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 	err = ch.PublishWithContext(context.Background(), exchange, key, false, false, publish_json)
 	if err != nil {
 		log.Fatalf("Error publishing with context: %s", err)
+		return err
 	}
 
+	log.Printf("Successfully published message to exchange '%s' with key '%s'",
+		exchange, key)
 	return nil
 }

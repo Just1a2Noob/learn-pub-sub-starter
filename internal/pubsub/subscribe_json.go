@@ -36,6 +36,11 @@ func SubscribeJSON[T any](
 				log.Fatalf("Error unmarshalling message from channel: %err", err)
 			}
 			handler(body_results)
+
+			err = msg.Ack(false)
+			if err != nil {
+				log.Printf("Failed to acknowledge message: %s", err)
+			}
 		}
 	}()
 
