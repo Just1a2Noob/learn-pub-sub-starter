@@ -25,7 +25,5 @@ func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 		return err
 	}
 
-	log.Printf("Successfully published message to exchange '%s' with key '%s'",
-		exchange, key)
 	return nil
 }
