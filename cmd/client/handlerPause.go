@@ -8,11 +8,10 @@ import (
 )
 
 func handlerPause(gs *gamelogic.GameState) func(routing.PlayingState) {
-
-	return (func(ps routing.PlayingState) {
+	return func(ps routing.PlayingState) {
 		defer fmt.Print("> ")
 		gs.HandlePause(routing.PlayingState{
 			IsPaused: ps.IsPaused,
 		})
-	})
+	}
 }
