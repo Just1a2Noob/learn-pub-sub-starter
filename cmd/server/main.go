@@ -29,10 +29,7 @@ func main() {
 
 	fmt.Printf("Connection to server was successful")
 
-	_, _, err = pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, "game_logs", "game_logs*", pubsub.SimpleQueueType{
-		Durable:   true,
-		Transient: false,
-	})
+	_, _, err = pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, "game_logs", "game_logs*", pubsub.SimpleQueueDurable)
 	if err != nil {
 		log.Fatalf("Error binding connection to queue: %s", err)
 	}

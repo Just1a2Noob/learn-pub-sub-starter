@@ -34,7 +34,8 @@ func main() {
 		routing.ExchangePerilDirect,
 		strings.Join([]string{routing.PauseKey, username}, "."),
 		routing.PauseKey,
-		pubsub.SimpleQueueType{Transient: true})
+		pubsub.SimpleQueueDurable,
+	)
 	if err != nil {
 		log.Fatalf("Error declaring and binding connection: %s", err)
 	}
@@ -48,7 +49,7 @@ func main() {
 		string(routing.ExchangePerilDirect),
 		queue_name,
 		string(routing.PauseKey),
-		pubsub.SimpleQueueType{Transient: true},
+		pubsub.SimpleQueueDurable,
 		handlerPause(gamestate),
 	)
 	if err != nil {
@@ -60,7 +61,7 @@ func main() {
 		routing.ExchangePerilTopic,
 		routing.ArmyMovesPrefix+"."+gamestate.GetUsername(),
 		routing.ArmyMovesPrefix+".*",
-		pubsub.SimpleQueueType{Transient: true},
+		pubsub.SimpleQueueDurable,
 		handlerMove(gamestate),
 	)
 	if err != nil {

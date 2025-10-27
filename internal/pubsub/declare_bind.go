@@ -3,6 +3,7 @@ package pubsub
 import (
 	"log"
 
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -19,13 +20,23 @@ func DeclareAndBind(
 		log.Fatalf("Error creating connection channel: %s", err)
 	}
 
+	isTransient := queueType == SimpleQueueTransient
+	queueClassic := QueueClassicQuorum
+	if isTransient {
+		queueClassic = QueueClassicType
+	}
+
 	queue, err := connChan.QueueDeclare(
 		queueName,
-		queueType.Durable,
-		queueType.Transient,
-		queueType.Transient,
+		queueType == SimpleQueueDurable,
+		isTransient,
+		isTransient,
 		false,
-		nil)
+		amqp.Table{
+			"x-dead-letter-exchange": routing.ExchangePerilDeadLetter,
+			"x-queue-type":           queueClassic,
+		},
+	)
 
 	if err != nil {
 		log.Fatalf("Error creating new queue to channel: %s", err)
