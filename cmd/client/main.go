@@ -28,7 +28,6 @@ func main() {
 		log.Fatalf("Error in getting username: %s", err)
 	}
 
-	// Declares a bind to "pause" queue
 	connChan, _, err := pubsub.DeclareAndBind(
 		conn,
 		routing.ExchangePerilDirect,
@@ -68,6 +67,28 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't connect to army_move consumer: %s", err)
 	}
+	err = pubsub.SubscribeJSON(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.WarRecognitionsPrefix,
+		fmt.Sprintf("%s.%s", routing.WarRecognitionsPrefix, username),
+		pubsub.SimpleQueueDurable,
+		handlerWar(gamestate),
+	)
+	if err != nil {
+		log.Fatalf("Can't connect to war consumer: %s", err)
+	}
+
+	_, _, err = pubsub.DeclareAndBind(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.WarRecognitionsPrefix,
+		fmt.Sprintf("%s.%s", routing.WarRecognitionsPrefix, username),
+		pubsub.SimpleQueueDurable,
+	)
+	if err != nil {
+		log.Fatalf("Can't bind to war queue: %s", err)
+	}
 
 	for {
 		words := gamelogic.GetInput()
@@ -95,6 +116,7 @@ func main() {
 				routing.ArmyMovesPrefix+"."+movement.Player.Username,
 				movement,
 			)
+
 		case "status":
 			gamestate.CommandStatus()
 		case "help":
