@@ -39,6 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error declaring and binding connection: %s", err)
 	}
+	defer connChan.Close()
 
 	// Creates a new game_state and pass the gamestate to the handler
 	gamestate := gamelogic.NewGameState(username)
@@ -62,7 +63,7 @@ func main() {
 		routing.ArmyMovesPrefix+"."+gamestate.GetUsername(),
 		routing.ArmyMovesPrefix+".*",
 		pubsub.SimpleQueueDurable,
-		handlerMove(gamestate),
+		handlerMove(gamestate, connChan),
 	)
 	if err != nil {
 		log.Fatalf("Can't connect to army_move consumer: %s", err)
