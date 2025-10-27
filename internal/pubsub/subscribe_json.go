@@ -36,13 +36,16 @@ func SubscribeJSON[T any](
 				log.Fatalf("Error unmarshalling message from channel: %err", err)
 				msg.Nack(false, true)
 			}
-			msg.Ack(false)
-			handler(body_results)
-
-			err = msg.Ack(false)
-			if err != nil {
-				log.Printf("Failed to acknowledge message: %s", err)
+			acktype := handler(body_results)
+			switch acktype {
+			case Ack:
+				msg.Ack(false)
+			case NackRequeue:
+				msg.Nack(false, true)
+			case NackDiscard:
+				msg.Nack(false, false)
 			}
+
 		}
 	}()
 
