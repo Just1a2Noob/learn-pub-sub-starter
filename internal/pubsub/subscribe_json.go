@@ -34,7 +34,9 @@ func SubscribeJSON[T any](
 			err := json.Unmarshal(msg.Body, &body_results)
 			if err != nil {
 				log.Fatalf("Error unmarshalling message from channel: %err", err)
+				msg.Nack(false, true)
 			}
+			msg.Ack(false)
 			handler(body_results)
 
 			err = msg.Ack(false)

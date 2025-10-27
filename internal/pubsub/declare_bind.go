@@ -42,7 +42,7 @@ func DeclareAndBind(
 		log.Fatalf("Error creating new queue to channel: %s", err)
 	}
 
-	err = connChan.QueueBind(queueName, key, exchange, false, nil)
+	err = connChan.QueueBind(queue.Name, key, exchange, false, nil)
 
 	if err != nil {
 		log.Fatalf("Error binding queue to exchange: %s", err)
