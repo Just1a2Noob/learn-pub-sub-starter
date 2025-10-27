@@ -36,8 +36,9 @@ func handlerMove(gs *gamelogic.GameState, channel *amqp.Channel) func(gamelogic.
 				fmt.Printf("Failed to publish war message: %v\n", err)
 				return pubsub.NackRequeue
 			}
-			fmt.Print("Acknowledge\n")
-			return pubsub.Ack
+
+			fmt.Print("NackRequeue\n")
+			return pubsub.NackDiscard
 		default:
 			fmt.Print("NackDiscard\n")
 			return pubsub.NackDiscard
