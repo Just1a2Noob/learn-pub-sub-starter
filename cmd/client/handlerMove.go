@@ -38,7 +38,7 @@ func handlerMove(gs *gamelogic.GameState, channel *amqp.Channel) func(gamelogic.
 			}
 
 			fmt.Print("NackRequeue\n")
-			return pubsub.NackDiscard
+			return pubsub.Ack
 		default:
 			fmt.Print("NackDiscard\n")
 			return pubsub.NackDiscard
