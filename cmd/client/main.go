@@ -56,6 +56,7 @@ func main() {
 		log.Fatalf("Can't connect to gamestate consumer: %s", err)
 	}
 
+	// move exchange
 	err = pubsub.SubscribeJSON(
 		conn,
 		routing.ExchangePerilTopic,
@@ -67,13 +68,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't connect to army_move consumer: %s", err)
 	}
+
+	// subscribe and bind to war
 	err = pubsub.SubscribeJSON(
 		conn,
 		routing.ExchangePerilTopic,
 		routing.WarRecognitionsPrefix,
 		fmt.Sprintf("%s.%s", routing.WarRecognitionsPrefix, username),
 		pubsub.SimpleQueueDurable,
-		handlerWar(gamestate),
+		handlerWar(gamestate, connChan),
 	)
 	if err != nil {
 		log.Fatalf("Can't connect to war consumer: %s", err)
@@ -89,6 +92,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't bind to war queue: %s", err)
 	}
+
+	_, _, err = pubsub.DeclareAndBind(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		fmt.Sprintf("%s.*", routing.GameLogSlug),
+		pubsub.SimpleQueueDurable,
+	)
 
 	for {
 		words := gamelogic.GetInput()
