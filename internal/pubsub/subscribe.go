@@ -10,6 +10,10 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+const (
+	defaultPrefetchCount = 10
+)
+
 func Subscribe[T any](
 	conn *amqp.Connection,
 	exchange,
@@ -22,6 +26,14 @@ func Subscribe[T any](
 	amqpChan, queue, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
 	if err != nil {
 		log.Fatalf("Queue does not exists or is not bound to the exchange: %s", err)
+		return err
+	}
+
+	// Below sets the prefetch to 10
+	// For more information check out the documentation for Channel.Qos()
+	err = amqpChan.Qos(defaultPrefetchCount, 0, false)
+	if err != nil {
+		log.Fatalf("Failed to set prefetch count: %s", err)
 		return err
 	}
 
