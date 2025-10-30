@@ -26,12 +26,29 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating connection channel: %s", err)
 	}
+	defer connChan.Close()
 
 	fmt.Printf("Connection to server was successful")
 
-	_, _, err = pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, "game_logs", "game_logs*", pubsub.SimpleQueueDurable)
+	_, _, err = pubsub.DeclareAndBind(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		fmt.Sprintf("%s.*", routing.GameLogSlug),
+		pubsub.SimpleQueueDurable)
 	if err != nil {
-		log.Fatalf("Error binding connection to queue: %s", err)
+		log.Fatalf("Error binding connection to games_log: %s", err)
+	}
+
+	err = pubsub.SubscribeGOB(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		fmt.Sprintf("%s.*", routing.GameLogSlug),
+		pubsub.SimpleQueueDurable,
+		HandlerLog(connChan))
+	if err != nil {
+		log.Fatalf("Error subscribing to games_log: %s", err)
 	}
 
 	gamelogic.PrintServerHelp()
